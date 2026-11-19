@@ -171,6 +171,31 @@ textarea{width:100%;border:0;background:none;resize:none;min-height:70px;outline
 .done-hero p{margin:0;color:var(--sec)}
 .note{font-size:14px;color:var(--sec);line-height:1.45}
 .note ol{padding-left:20px;margin:6px 0}
+
+/* --- v1.1 ritocchi --- */
+.card,.list,.tile,.hero{box-shadow:0 1px 2px rgba(0,0,0,.04),0 6px 18px rgba(0,0,0,.045)}
+@media (prefers-color-scheme: dark){.card,.list,.tile,.hero{box-shadow:none}}
+.btn,.row.tap,.active-card,.addset,.stepper button,#rest button{transition:transform .12s ease,opacity .12s}
+.btn:active,.active-card:active,.addset:active{transform:scale(.97)}
+.stepper button:active{transform:scale(.85)}
+.kicker{font-size:13px;font-weight:600;color:var(--sec);text-transform:uppercase;letter-spacing:.2px;margin-top:8px}
+h1.large{margin-top:0}
+#toast{top:auto;bottom:calc(74px + env(safe-area-inset-bottom));transform:translate(-50%,20px);border-radius:22px;padding:12px 18px;
+  background:rgba(28,28,30,.86);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+body.resting #toast{bottom:calc(150px + env(safe-area-inset-bottom))}
+.hero.grad{background:linear-gradient(135deg,var(--blue),var(--indigo));color:#fff}
+.hero.grad .lab,.hero.grad .sub{color:rgba(255,255,255,.8)}.hero.grad .sub b{color:#fff}
+.hero .bar{height:6px;border-radius:3px;background:rgba(255,255,255,.25);margin-top:10px;overflow:hidden;width:140px;margin-left:auto}
+.hero .bar i{display:block;height:100%;background:#fff;border-radius:3px}
+.ex .head{display:flex;align-items:center;gap:12px}
+.ex .gi{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:14px;font-weight:700;flex:none}
+.ex .head .grow{flex:1;min-width:0}
+.ex .cnt{font-size:13px;font-weight:600;color:var(--sec);background:var(--fill);border-radius:10px;padding:3px 9px}
+.ex.done .cnt{color:#fff;background:var(--green)}
+.tile .k{display:flex;align-items:center;gap:6px}
+.tile .k i{width:20px;height:20px;border-radius:6px;display:grid;place-items:center;font-style:normal;font-size:11px;color:#fff}
+.row .icon{border-radius:10px;width:36px;height:36px}
+.sec-h{font-weight:500}
 </style>
 </head>
 <body>
@@ -216,6 +241,8 @@ const DAYS = {
   2:{name:'Braccia e Spalle', color:'var(--orange)', ex:['frontali','laterali','bicsed','scott','tricalti','tricbassi','lat','chest']},
   3:{name:'Rotazione', color:'var(--purple)', ex:null},
 };
+const GCOL = {'Petto':'var(--blue)','Schiena':'var(--teal)','Spalle':'var(--orange)','Deltoidi posteriori':'var(--red)','Bicipiti':'var(--purple)','Tricipiti':'var(--indigo)'};
+const GABBR = {'Petto':'Pe','Schiena':'Sc','Spalle':'Sp','Deltoidi posteriori':'Dp','Bicipiti':'Bi','Tricipiti':'Tr'};
 const GROUPS = ['Petto','Schiena','Spalle','Deltoidi posteriori','Bicipiti','Tricipiti'];
 const STYLES = ['Libero','Misto','Rana','Dorso','Delfino'];
 const FEEL = ['Facile','Media','Dura'];
@@ -326,7 +353,7 @@ function render(toTop){
   const left = stack.length?`<button class="navbtn" data-a="back"><svg viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2L2 10l8 8"/></svg>${esc(view.backLabel||'Indietro')}</button>`:'<span></span>';
   const right = view.right?`<button class="navbtn r" data-a="${view.right.a}">${view.right.label}</button>`:'<span></span>';
   $('#nav').innerHTML=`<div class="navrow">${left}<div class="navtitle">${stack.length?esc(view.title):''}</div>${right}</div>`;
-  $('#main').innerHTML=(stack.length?'':`<h1 class="large">${esc(view.title)}</h1>`)+view.html;
+  $('#main').innerHTML=(stack.length?'':`<div class="kicker">${esc(new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'}))}</div><h1 class="large">${esc(view.title)}</h1>`)+view.html;
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
   window.scrollTo(0,toTop?0:y);onScroll();tick();
   if(view.after)view.after();
@@ -371,8 +398,8 @@ V.gym = ()=>{
     h+=`<button class="row ic tap" data-a="day" data-d="${d}"><div class="icon" style="background:${DAYS[d].color}">${d}</div><div class="grow"><div class="t">${esc(DAYS[d].name)}</div><div class="s">${esc(sub)}</div></div>${d===nd&&!a?'<span class="pill blue">Prossimo</span>':''}${chev}</button>`});
   h+=`</div>`;
   h+=`<div class="sec-h">Questa settimana</div><div class="tiles">
-    <div class="tile"><div class="k">Allenamenti</div><div class="n">${week.length}<small>/ ${goal}</small></div><div class="dots">${Array.from({length:goal},(_,i)=>`<span class="${i<week.length?'on':''}"></span>`).join('')}</div></div>
-    <div class="tile"><div class="k">Volume</div><div class="n">${int(wVol)}<small>kg</small></div><div class="d">${pVol?`${wVol>=pVol?'<span class="up">▲':'<span class="down">▼'} ${int(Math.abs(wVol-pVol))}</span> vs sett. scorsa`:'peso × ripetizioni'}</div></div></div>`;
+    <div class="tile"><div class="k"><i style="background:var(--green)">✓</i>Allenamenti</div><div class="n">${week.length}<small>/ ${goal}</small></div><div class="dots">${Array.from({length:goal},(_,i)=>`<span class="${i<week.length?'on':''}"></span>`).join('')}</div></div>
+    <div class="tile"><div class="k"><i style="background:var(--blue)">kg</i>Volume</div><div class="n">${int(wVol)}<small>kg</small></div><div class="d">${pVol?`${wVol>=pVol?'<span class="up">▲':'<span class="down">▼'} ${int(Math.abs(wVol-pVol))}</span> vs sett. scorsa`:'peso × ripetizioni'}</div></div></div>`;
   const list=sessionsDesc().slice(0,15);
   h+=`<div class="sec-h">Storico</div>`;
   h+= list.length?`<div class="list">${list.map(s=>`<button class="row tap" data-a="session" data-id="${s.id}"><div class="grow"><div class="t">${esc(fmtDate(s.start))} · Giorno ${s.day}</div><div class="s">${fmtMin(s.end-s.start)} · ${nSets(s)} serie · ${int(volume(s))} kg${s.prs?` · 🏆 ${s.prs}`:''}</div></div>${chev}</button>`).join('')}</div>`
@@ -394,7 +421,8 @@ function exCard(e,idx){
   const lastSet=e.sets[e.sets.length-1];
   const w = e.nextW!=null?e.nextW : lastSet?lastSet.w : (sg.next!=null?sg.next:'');
   const r = lastSet?lastSet.r : S.settings.repMax;
-  let h=`<div class="card ex" id="ex_${id}"><div class="name">${esc(exName(id))}</div><div class="grp">${esc((EX[id]||{}).g||'')}${EX[id]&&EX[id].bw?' · peso = zavorra (0 = corpo libero)':''}</div>`;
+  const g=(EX[id]||{}).g||'', gc=GCOL[g]||'var(--sec)';
+  let h=`<div class="card ex${e.sets.length>=3?' done':''}" id="ex_${id}"><div class="head"><div class="gi" style="background:color-mix(in srgb,${gc} 16%,transparent);color:${gc}">${GABBR[g]||'•'}</div><div class="grow"><div class="name">${esc(exName(id))}</div><div class="grp">${esc(g)}${EX[id]&&EX[id].bw?' · peso = zavorra':''}</div></div><span class="cnt">${e.sets.length>=3?'✓ ':''}${e.sets.length} serie</span></div>`;
   if(L) h+=`<div class="last">Ultima volta (${esc(shortDate(L.s.start))}): <b>${setsStr(L.sets)}</b></div>`;
   h+=`<div class="hint ${sg.type}"><i>${sg.icon}</i><span>${sg.text}</span></div>`;
   if(e.sets.length) h+=`<div class="sets">${e.sets.map((s,i)=>`<div class="set"><span class="no">${i+1}</span><span class="val">${kg(s.w)} kg × ${s.r}</span>${s.pr?'<span class="badge pr">🏆 record</span>':''}${repBadge(s.r)}<button class="x" data-a="delSet" data-i="${idx}" data-s="${i}" aria-label="Elimina serie">✕</button></div>`).join('')}</div>`;
@@ -408,7 +436,8 @@ function exCard(e,idx){
 
 V.workout = ()=>{
   const a=S.active; if(!a){stack=[];return V.gym()}
-  let h=`<div class="hero"><div><div class="lab">Tempo totale</div><div class="time" data-live="total"></div></div><div class="sub"><b>${nSets(a)}</b>serie · ${int(volume(a))} kg</div></div>`;
+  const doneEx=a.ex.filter(e=>e.sets.length).length;
+  let h=`<div class="hero grad"><div><div class="lab">Tempo totale</div><div class="time" data-live="total"></div></div><div class="sub"><b>${doneEx}/${a.ex.length}</b>esercizi · ${nSets(a)} serie<div class="bar"><i style="width:${a.ex.length?100*doneEx/a.ex.length:0}%"></i></div></div></div>`;
   h+=a.ex.map((e,i)=>exCard(e,i)).join('');
   h+=`<button class="btn plain" data-a="pick">＋ Aggiungi esercizio</button>
       <button class="btn green" data-a="finish" style="margin-top:22px">Termina allenamento</button>
@@ -537,7 +566,7 @@ V.more = ()=>{
     <button class="row tap" data-a="import"><div class="grow t" style="color:var(--blue)">Importa da file</div></button></div>
     <div class="sec-f">Salva il file su iCloud Drive o in File. Per ripristinare, usa “Importa” e scegli il file.</div>`;
   h+=`<div class="sec-h">Installa sull'iPhone</div><div class="card note"><ol><li>Apri questa pagina con <b>Safari</b>.</li><li>Tocca il tasto <b>Condividi</b> (quadrato con freccia).</li><li>Scegli <b>Aggiungi alla schermata Home</b>.</li></ol>Dopo, l'app si apre a tutto schermo e funziona anche senza internet. I dati restano solo sul tuo telefono.</div>`;
-  h+=`<button class="btn danger" data-a="reset" style="margin-top:24px">Cancella tutti i dati</button><div class="sec-f" style="text-align:center;margin-bottom:10px">Allenamenti · versione 1.0</div>`;
+  h+=`<button class="btn danger" data-a="reset" style="margin-top:24px">Cancella tutti i dati</button><div class="sec-f" style="text-align:center;margin-bottom:10px">Allenamenti · versione 1.1</div>`;
   return {title:'Altro',html:h};
 };
 
