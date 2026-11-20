@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Allenamenti">
 <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
@@ -293,6 +293,30 @@ main.a-fade>*:nth-child(5){animation-delay:.12s}main.a-fade>*:nth-child(6){anima
 @keyframes fall{to{transform:translate(var(--dx),110vh) rotate(var(--rot));opacity:.9}}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 @media (prefers-color-scheme: dark){.stepper button{background:#3a3a3c;box-shadow:none}.daycard{box-shadow:none}#rest{box-shadow:0 0 0 .5px var(--sep)}}
+
+/* --- v1.3 --- */
+#nav.root{border-bottom-color:transparent!important}
+#nav.root:not(.line){background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none}
+@media (prefers-color-scheme: light){#nav::before{content:"";position:absolute;left:0;right:0;top:0;height:env(safe-area-inset-top);background:linear-gradient(rgba(0,0,0,.32),rgba(0,0,0,0));pointer-events:none}}
+main>.kicker:first-child{margin-top:14px}
+.row .t{line-height:1.3}
+.row .s{margin-top:4px;line-height:1.35}
+.dayhero{border-radius:22px;padding:22px 20px;color:#fff;position:relative;overflow:hidden;margin:8px 0 6px}
+.dayhero .dn{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;opacity:.85}
+.dayhero .dt{font:800 28px/1.15 var(--round);margin-top:4px;letter-spacing:-.4px}
+.dayhero .meta{display:flex;gap:18px;margin-top:16px}
+.dayhero .meta b{display:block;font:700 22px/1.1 var(--round)}
+.dayhero .meta span{font-size:13px;opacity:.85}
+.dayhero .big{position:absolute;right:14px;bottom:-30px;font:900 140px/1 var(--round);opacity:.15}
+.exrow{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;position:relative}
+.exrow+.exrow::before{content:"";position:absolute;top:0;left:74px;right:0;border-top:.5px solid var(--sep)}
+.exrow .gi{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font:700 15px var(--round);flex:none}
+.exrow .grow{flex:1;min-width:0}
+.exrow .t{font-size:17px;font-weight:600;letter-spacing:-.2px;line-height:1.3}
+.exrow .g{font-size:14px;color:var(--sec);margin-top:3px}
+.exrow .l{font-size:14px;margin-top:8px;color:var(--sec);line-height:1.4}
+.exrow .l b{color:var(--text);font-weight:600;font-family:var(--round)}
+.exrow .pill{margin-top:8px;display:inline-block}
 </style>
 </head>
 <body>
@@ -450,7 +474,7 @@ function render(toTop){
   const c=cur(), view=V[c.v](c.p||{}), y=window.scrollY;
   const left = stack.length?`<button class="navbtn" data-a="back"><svg viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2L2 10l8 8"/></svg>${esc(view.backLabel||'Indietro')}</button>`:'<span></span>';
   const right = view.right?`<button class="navbtn r" data-a="${view.right.a}">${view.right.label}</button>`:'<span></span>';
-  $('#nav').innerHTML=`<div class="navrow">${left}<div class="navtitle">${stack.length?esc(view.title):''}</div>${right}</div>`;
+  $('#nav').innerHTML=stack.length?`<div class="navrow">${left}<div class="navtitle">${esc(view.title)}</div>${right}</div>`:'';$('#nav').classList.toggle('root',!stack.length);
   $('#main').innerHTML=(stack.length?'':`<div class="kicker">${esc(new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'}))}</div><h1 class="large">${esc(view.title)}</h1>`)+view.html;
   const M=$('#main');M.classList.remove('a-push','a-pop','a-fade');if(anim){void M.offsetWidth;M.classList.add(anim)}anim=null;popSet=null;
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
@@ -508,8 +532,11 @@ V.gym = ()=>{
 
 V.day = ({d})=>{
   d=+d; const ex=dayExercises(d);
-  let h=`<div class="list">${ex.map(id=>{const L=lastSets(id),sg=suggest(id);
-    return `<div class="row"><div class="grow"><div class="t">${esc(exName(id))}</div><div class="s">${L?'Ultima: '+setsStr(L.sets):esc(EX[id].g)}</div></div>${sg.type==='up'||sg.type==='up2'?'<span class="pill green">⬆ carico</span>':''}</div>`}).join('')}</div>`;
+  const lastDay=sessionsDesc().find(s=>s.day===d);
+  let h=`<div class="dayhero daycard d${d}" style="min-height:0"><div class="dn">Giorno ${d}</div><div class="dt">${esc(DAYS[d].name)}</div>
+    <div class="meta"><div><b>${ex.length}</b><span>esercizi</span></div><div><b>~${ex.length*3*(S.settings.rest/60+0.75)|0}′</b><span>durata stimata</span></div><div><b>${lastDay?esc(shortDate(lastDay.start)):'–'}</b><span>ultima volta</span></div></div><div class="big">${d}</div></div>`;
+  h+=`<div class="sec-h">Esercizi</div><div class="list">${ex.map(id=>{const L=lastSets(id),sg=suggest(id),g=EX[id].g,gc=GCOL[g]||'var(--sec)';
+    return `<div class="exrow"><div class="gi" style="background:color-mix(in srgb,${gc} 16%,transparent);color:${gc}">${GABBR[g]||'•'}</div><div class="grow"><div class="t">${esc(exName(id))}</div><div class="g">${esc(g)}</div>${L?`<div class="l">Ultima volta: <b>${setsStr(L.sets)}</b></div>`:''}${sg.type==='up'||sg.type==='up2'?`<span class="pill green">⬆ Prova ${kg(sg.next)} kg</span>`:''}</div></div>`}).join('')}</div>`;
   if(d===3) h+=`<div class="sec-f">Un esercizio per gruppo muscolare, preso dai giorni 1 e 2. Cambia a ogni giorno 3 che completi.</div>`;
   h+=`<button class="btn primary" data-a="start" data-d="${d}" style="margin-top:20px">Inizia allenamento</button>`;
   return {title:`Giorno ${d} · ${DAYS[d].name}`,html:h,backLabel:'Palestra'};
@@ -665,7 +692,7 @@ V.more = ()=>{
     <button class="row tap" data-a="import"><div class="grow t" style="color:var(--blue)">Importa da file</div></button></div>
     <div class="sec-f">Salva il file su iCloud Drive o in File. Per ripristinare, usa “Importa” e scegli il file.</div>`;
   h+=`<div class="sec-h">Installa sull'iPhone</div><div class="card note"><ol><li>Apri questa pagina con <b>Safari</b>.</li><li>Tocca il tasto <b>Condividi</b> (quadrato con freccia).</li><li>Scegli <b>Aggiungi alla schermata Home</b>.</li></ol>Dopo, l'app si apre a tutto schermo e funziona anche senza internet. I dati restano solo sul tuo telefono.</div>`;
-  h+=`<button class="btn danger" data-a="reset" style="margin-top:24px">Cancella tutti i dati</button><div class="sec-f" style="text-align:center;margin-bottom:10px">Allenamenti · versione 1.2</div>`;
+  h+=`<button class="btn danger" data-a="reset" style="margin-top:24px">Cancella tutti i dati</button><div class="sec-f" style="text-align:center;margin-bottom:10px">Allenamenti · versione 1.3</div>`;
   return {title:'Altro',html:h};
 };
 
