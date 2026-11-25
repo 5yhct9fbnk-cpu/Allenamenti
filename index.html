@@ -317,6 +317,25 @@ main>.kicker:first-child{margin-top:14px}
 .exrow .l{font-size:14px;margin-top:8px;color:var(--sec);line-height:1.4}
 .exrow .l b{color:var(--text);font-weight:600;font-family:var(--round)}
 .exrow .pill{margin-top:8px;display:inline-block}
+
+/* --- v1.4 nuoto --- */
+.swgoal{position:relative;overflow:hidden;border-radius:22px;padding:20px;color:#fff;background:linear-gradient(135deg,#30b0c7 0%,#0a84ff 100%);box-shadow:0 10px 26px -12px rgba(10,132,255,.6);margin-top:4px}
+.swgoal .dn{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;opacity:.9}
+.swgoal .dt{font:800 26px/1.15 var(--round);margin-top:6px;letter-spacing:-.3px}
+.swgoal .ds{font-size:15px;opacity:.95;margin-top:8px;line-height:1.4;max-width:88%}
+.swgoal .big{position:absolute;right:-6px;bottom:-14px;font-size:86px;opacity:.2}
+details.watch{margin-top:14px;padding:0}
+details.watch summary{padding:16px 18px;font-weight:600;list-style:none;cursor:pointer;display:flex;justify-content:space-between}
+details.watch summary::-webkit-details-marker{display:none}
+details.watch summary::after{content:"›";transform:rotate(90deg);color:var(--ter);font-size:22px;line-height:1;transition:transform .2s}
+details.watch[open] summary::after{transform:rotate(-90deg)}
+details.watch ol{margin:0;padding:0 18px 4px 38px;line-height:1.5;font-size:15px}
+details.watch li{margin-bottom:8px}
+details.watch .note{padding:0 18px 16px}
+.frow>span{color:var(--sec)}
+.swset{gap:8px}.swset select{flex:1;background:var(--fill);border:0;border-radius:8px;padding:6px 8px;font-size:16px}
+.swset .x{color:var(--ter);padding:4px 6px}
+.calc>div{flex:1}
 </style>
 </head>
 <body>
@@ -599,46 +618,75 @@ V.session = ({id,done})=>{
 const swimsDesc = ()=>S.swims.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.created-a.created);
 const swDist = w=>w.laps*w.pool;
 const swPace = w=>w.sec>0&&swDist(w)>0?w.sec/(swDist(w)/100):NaN;
+function swGoal(list){
+  const l=list[0];
+  if(!l) return {t:'Prima nuotata',d:'Parti con <b>20 vasche (500 m)</b>, fermandoti a bordo vasca quando serve. L’importante è finire senza fretta.'};
+  const step=l.feel===0?4:l.feel===1?2:0, laps=l.laps+step;
+  if(step) return {t:`${laps} vasche · ${int(laps*l.pool)} m`,d:`L’ultima volta ${l.laps} vasche (${FEEL[l.feel].toLowerCase()}). Aggiungi ${step} vasche${isFinite(swPace(l))?` e prova a stare sotto ${fmtPace(swPace(l))}/100 m`:''}.`};
+  return {t:`${l.laps} vasche · ${int(swDist(l))} m`,d:`L’ultima volta è stata dura: ripeti la stessa distanza${isFinite(swPace(l))?` e prova a scendere sotto ${fmtPace(swPace(l))}/100 m`:''}.`};
+}
 V.swim = ()=>{
   const list=swimsDesc(), now=new Date(), ms=new Date(now.getFullYear(),now.getMonth(),1).getTime(), ws=weekStart(Date.now());
   const month=list.filter(w=>dayTs(w.date)>=ms), week=list.filter(w=>dayTs(w.date)>=ws);
   const last4=list.slice(0,4).filter(w=>isFinite(swPace(w)));
   const avgPace=last4.length?last4.reduce((t,w)=>t+w.sec,0)/last4.reduce((t,w)=>t+swDist(w)/100,0):NaN;
   const best=list.reduce((b,w)=>isFinite(swPace(w))&&(!b||swPace(w)<swPace(b))?w:b,null);
-  let h=`<button class="btn primary" data-a="swimNew" style="margin-top:0">＋ Registra sessione</button>`;
+  const g=swGoal(list);
+  let h=`<div class="swgoal"><div class="dn">🎯 Obiettivo prossima volta</div><div class="dt">${g.t}</div><div class="ds">${g.d}</div><div class="big">🌊</div></div>`;
+  h+=`<button class="btn primary" data-a="swimNew">＋ Registra sessione</button>`;
+  h+=`<details class="card watch"${list.length?'':' open'}><summary>⌚ Come cronometrare con Apple Watch</summary><ol>
+    <li>Sul Watch apri <b>Allenamento</b> → <b>Nuoto in piscina</b>.</li>
+    <li>Tocca i tre puntini e imposta la <b>lunghezza vasca a 25 m</b>, poi avvia. Lo schermo si blocca da solo in acqua.</li>
+    <li>Per le pause fermati a bordo vasca: il Watch le riconosce da solo.</li>
+    <li>Alla fine sblocca il Watch con la <b>Digital Crown</b> (tienila premuta, o ruotala sui modelli più vecchi), scorri a destra e tocca <b>Termina</b>.</li>
+    <li>Qui tocca <b>Registra sessione</b> e copia <b>Distanza</b> e <b>Durata</b> dal riepilogo del Watch (o dall’app Fitness sull’iPhone).</li></ol>
+    <div class="note">L’app non può leggere direttamente i dati del Watch: è una limitazione di iPhone per le app web. Bastano 20 secondi per copiarli.</div></details>`;
   h+=`<div class="sec-h">Riepilogo</div><div class="tiles">
     <div class="tile"><div class="k">Questa settimana</div><div class="n">${week.reduce((t,w)=>t+w.laps,0)}<small>vasche</small></div><div class="d">${int(week.reduce((t,w)=>t+swDist(w),0))} m</div></div>
-    <div class="tile"><div class="k">Questo mese</div><div class="n">${int(month.reduce((t,w)=>t+swDist(w),0))}<small>m</small></div><div class="d">${month.length} sessioni</div></div>
+    <div class="tile"><div class="k">Questo mese</div><div class="n">${int(month.reduce((t,w)=>t+swDist(w),0))}<small>m</small></div><div class="d">${month.length} session${month.length===1?'e':'i'}</div></div>
     <div class="tile"><div class="k">Passo medio</div><div class="n">${fmtPace(avgPace)}<small>/100 m</small></div><div class="d">ultime ${last4.length||0} sessioni</div></div>
     <div class="tile"><div class="k">Miglior passo</div><div class="n">${best?fmtPace(swPace(best)):'–'}<small>/100 m</small></div><div class="d">${best?esc(fmtDate(dayTs(best.date))):'—'}</div></div></div>`;
   h+=`<div class="sec-h">Storico</div>`;
-  h+= list.length?`<div class="list">${list.map(w=>`<button class="row tap" data-a="swimEdit" data-id="${w.id}"><div class="grow"><div class="t">${esc(fmtDate(dayTs(w.date)))} · ${int(swDist(w))} m</div><div class="s">${w.laps} vasche da ${w.pool} m · ${w.sec?fmtDur(w.sec*1000):'–'} · ${fmtPace(swPace(w))}/100 m · ${esc(w.style)}</div></div>${chev}</button>`).join('')}</div>`
+  h+= list.length?`<div class="list">${list.map(w=>`<button class="row tap" data-a="swimEdit" data-id="${w.id}"><div class="grow"><div class="t">${esc(fmtDate(dayTs(w.date)))} · ${int(swDist(w))} m</div><div class="s">${w.laps} vasche · ${w.sec?fmtDur(w.sec*1000):'–'} · ${fmtPace(swPace(w))}/100 m${w.kcal?` · ${w.kcal} kcal`:''}</div>${w.sets&&w.sets.length?`<div class="s">${w.sets.map(x=>`${x.n}×${x.d} ${esc(x.style.toLowerCase())}`).join(' · ')}</div>`:''}</div>${chev}</button>`).join('')}</div>`
     :`<div class="list"><div class="empty">Nessuna sessione registrata. Dopo la piscina tocca “Registra sessione” 🏊</div></div>`;
   return {title:'Nuoto',html:h};
 };
+function swSetRow(x){return `<div class="frow swset"><input class="num" inputmode="numeric" value="${x.n||''}" placeholder="4" style="width:52px"><span>×</span><input class="num" inputmode="numeric" value="${x.d||''}" placeholder="50" style="width:64px"><span>m</span><select>${STYLES.map(s=>`<option ${s===(x.style||'Libero')?'selected':''}>${s}</option>`).join('')}</select><button class="x" data-a="swSetDel" aria-label="Elimina">✕</button></div>`}
 V.swimForm = ({id})=>{
   const w=id?S.swims.find(x=>x.id===id):null, prev=swimsDesc().find(x=>x.id!==id);
-  const d=w||{date:isoDay(Date.now()),pool:prev?prev.pool:25,laps:prev?prev.laps:20,sec:prev?prev.sec:0,style:prev?prev.style:'Libero',feel:1,notes:''};
+  const d=w||{date:isoDay(Date.now()),pool:prev?prev.pool:25,laps:prev?prev.laps:20,sec:0,style:prev?prev.style:'Libero',feel:1,notes:'',kcal:'',hr:'',sets:[]};
   window._pool=d.pool; window._feel=d.feel;
-  let h=`<div class="list">
+  const stp=(id,step,val,w2)=>`<div class="stepper" style="flex:none;width:${w2||160}px;height:44px"><button data-a="step" data-t="${id}" data-d="-${step}">−</button><input id="${id}" inputmode="numeric" value="${val}"><button data-a="step" data-t="${id}" data-d="${step}">+</button></div>`;
+  let h=`${w?'':`<div class="hint new" style="margin:4px 0 14px"><i>⌚</i><span>Copia <b>Distanza</b> e <b>Durata</b> dal riepilogo dell’allenamento sul Watch. Le vasche si calcolano da sole.</span></div>`}
+  <div class="list">
     <div class="frow"><label>Data</label><input type="date" id="sw_date" value="${d.date}"></div>
     <div class="frow"><label>Vasca</label><div class="seg" id="sw_pool">${[25,50].map(p=>`<button data-a="swPool" data-v="${p}" class="${d.pool===p?'on':''}">${p} m</button>`).join('')}</div></div>
-    <div class="frow"><label>Vasche</label><div class="stepper" style="flex:none;width:150px;height:38px"><button data-a="step" data-t="sw_laps" data-d="-1" style="height:38px">−</button><input id="sw_laps" inputmode="numeric" value="${d.laps}"><button data-a="step" data-t="sw_laps" data-d="1" style="height:38px">+</button></div></div>
-    <div class="frow"><label>Durata</label><input class="num" id="sw_min" inputmode="numeric" placeholder="min" value="${d.sec?Math.floor(d.sec/60):''}"> : <input class="num" id="sw_sec" inputmode="numeric" placeholder="sec" value="${d.sec?d.sec%60:''}" style="width:60px"></div>
-    <div class="frow"><label>Stile</label><select id="sw_style">${STYLES.map(s=>`<option ${s===d.style?'selected':''}>${s}</option>`).join('')}</select></div>
-    <div class="frow"><label>Fatica</label><div class="seg" id="sw_feel">${FEEL.map((f,i)=>`<button data-a="swFeel" data-v="${i}" class="${d.feel===i?'on':''}">${f}</button>`).join('')}</div></div>
+    <div class="frow"><label>Distanza (m)</label>${stp('sw_m',d.pool,d.laps*d.pool)}</div>
+    <div class="frow"><label>Vasche</label>${stp('sw_laps',1,d.laps)}</div>
+    <div class="frow"><label>Durata</label><input class="num" id="sw_min" inputmode="numeric" placeholder="min" value="${d.sec?Math.floor(d.sec/60):''}"><span>:</span><input class="num" id="sw_sec" inputmode="numeric" placeholder="sec" value="${d.sec?String(d.sec%60).padStart(2,'0'):''}" style="width:64px"></div>
   </div>
   <div class="list" style="margin-top:12px"><div class="calc" id="sw_calc"></div></div>
-  <div class="sec-h">Note</div><div class="list"><textarea id="sw_notes" placeholder="Es. 4×100 libero, recupero 30 s">${esc(d.notes)}</textarea></div>
+  <div class="sec-h">Come è andata</div><div class="list">
+    <div class="frow"><label>Stile principale</label><select id="sw_style">${STYLES.map(s=>`<option ${s===d.style?'selected':''}>${s}</option>`).join('')}</select></div>
+    <div class="frow"><label>Fatica</label><div class="seg" id="sw_feel">${FEEL.map((f,i)=>`<button data-a="swFeel" data-v="${i}" class="${d.feel===i?'on':''}">${f}</button>`).join('')}</div></div>
+  </div>
+  <div class="sec-h">Dal Watch · facoltativo</div><div class="list">
+    <div class="frow"><label>Calorie attive</label><input class="num" id="sw_kcal" inputmode="numeric" placeholder="kcal" value="${d.kcal||''}" style="width:90px"></div>
+    <div class="frow"><label>Frequenza cardiaca media</label><input class="num" id="sw_hr" inputmode="numeric" placeholder="bpm" value="${d.hr||''}" style="width:90px"></div>
+  </div>
+  <div class="sec-h">Serie · facoltativo</div><div class="list" id="sw_sets">${(d.sets||[]).map(swSetRow).join('')}<button class="row tap" data-a="swSetAdd"><div class="grow t" style="color:var(--blue)">＋ Aggiungi serie (es. 4 × 50 m)</div></button></div>
+  <div class="sec-h">Note</div><div class="list"><textarea id="sw_notes" placeholder="Es. recupero 30 s tra le vasche, gambe stanche…">${esc(d.notes)}</textarea></div>
   <button class="btn primary" data-a="swimSave" data-id="${id||''}" style="margin-top:20px">Salva</button>
   ${id?`<button class="btn danger" data-a="swimDel" data-id="${id}">Elimina sessione</button>`:''}`;
   return {title:id?'Modifica sessione':'Nuova sessione',html:h,backLabel:'Nuoto',right:{a:'swimSave',label:'Salva'},after:swCalc};
 };
-function swRead(){const m=num($('#sw_min').value)||0,s=num($('#sw_sec').value)||0;
-  return {date:$('#sw_date').value||isoDay(Date.now()),pool:window._pool,laps:Math.max(0,Math.round(num($('#sw_laps').value)||0)),sec:Math.round(m*60+s),style:$('#sw_style').value,feel:window._feel,notes:$('#sw_notes').value.trim()}}
+function swRead(){const m=num($('#sw_min').value)||0,s=num($('#sw_sec').value)||0,n=id=>{const v=Math.round(num($(id).value));return v>0?v:null};
+  const sets=[...document.querySelectorAll('#sw_sets .swset')].map(r=>{const i=r.querySelectorAll('input');return {n:Math.round(num(i[0].value))||0,d:Math.round(num(i[1].value))||0,style:r.querySelector('select').value}}).filter(x=>x.n>0&&x.d>0);
+  return {date:$('#sw_date').value||isoDay(Date.now()),pool:window._pool,laps:Math.max(0,Math.round(num($('#sw_laps').value)||0)),sec:Math.round(m*60+s),style:$('#sw_style').value,feel:window._feel,notes:$('#sw_notes').value.trim(),kcal:n('#sw_kcal'),hr:n('#sw_hr'),sets}}
 function swCalc(){const el=$('#sw_calc');if(!el)return;const w=swRead(),c=cur(),prev=swimsDesc().find(x=>x.id!==c.p.id&&x.date<=w.date);
   let cmp='';if(prev){const dd=swDist(w)-swDist(prev);cmp=dd?`<div class="k ${dd>0?'up':'down'}">${dd>0?'+':''}${int(dd)} m vs ultima</div>`:'<div class="k">= ultima volta</div>'}
-  el.innerHTML=`<div><div class="n">${int(swDist(w))} m</div><div class="k">Distanza</div>${cmp}</div><div><div class="n">${fmtPace(swPace(w))}</div><div class="k">Passo /100 m</div>${prev&&isFinite(swPace(prev))&&isFinite(swPace(w))?`<div class="k ${swPace(w)<=swPace(prev)?'up':'down'}">${swPace(w)<=swPace(prev)?'più veloce':'più lento'} di ${Math.abs(Math.round(swPace(w)-swPace(prev)))} s</div>`:''}</div>`}
+  const st=w.sets.reduce((t,x)=>t+x.n*x.d,0);
+  el.innerHTML=`<div><div class="n">${int(swDist(w))} m</div><div class="k">${w.laps} vasche</div>${cmp}</div><div><div class="n">${fmtPace(swPace(w))}</div><div class="k">Passo /100 m</div>${prev&&isFinite(swPace(prev))&&isFinite(swPace(w))?`<div class="k ${swPace(w)<=swPace(prev)?'up':'down'}">${swPace(w)<=swPace(prev)?'più veloce':'più lento'} di ${Math.abs(Math.round(swPace(w)-swPace(prev)))} s</div>`:''}</div>${st?`<div><div class="n">${int(st)} m</div><div class="k">nelle serie</div></div>`:''}`}
 
 /* --- Progressi --- */
 V.prog = ()=>{
@@ -692,7 +740,7 @@ V.more = ()=>{
     <button class="row tap" data-a="import"><div class="grow t" style="color:var(--blue)">Importa da file</div></button></div>
     <div class="sec-f">Salva il file su iCloud Drive o in File. Per ripristinare, usa “Importa” e scegli il file.</div>`;
   h+=`<div class="sec-h">Installa sull'iPhone</div><div class="card note"><ol><li>Apri questa pagina con <b>Safari</b>.</li><li>Tocca il tasto <b>Condividi</b> (quadrato con freccia).</li><li>Scegli <b>Aggiungi alla schermata Home</b>.</li></ol>Dopo, l'app si apre a tutto schermo e funziona anche senza internet. I dati restano solo sul tuo telefono.</div>`;
-  h+=`<button class="btn danger" data-a="reset" style="margin-top:24px">Cancella tutti i dati</button><div class="sec-f" style="text-align:center;margin-bottom:10px">Allenamenti · versione 1.3</div>`;
+  h+=`<button class="btn danger" data-a="reset" style="margin-top:24px">Cancella tutti i dati</button><div class="sec-f" style="text-align:center;margin-bottom:10px">Allenamenti · versione 1.4</div>`;
   return {title:'Altro',html:h};
 };
 
@@ -741,7 +789,7 @@ const A = {
   delSession:d=>{if(confirm('Eliminare questo allenamento?')){S.sessions=S.sessions.filter(s=>s.id!==d.id);save();back()}},
   swimNew:()=>nav('swimForm',{}),
   swimEdit:d=>nav('swimForm',{id:d.id}),
-  swPool:d=>{window._pool=+d.v;document.querySelectorAll('#sw_pool button').forEach(b=>b.classList.toggle('on',b.dataset.v===d.v));swCalc()},
+  swPool:d=>{window._pool=+d.v;const m=$('#sw_m');m.value=(Math.round(num($('#sw_laps').value))||0)*window._pool;m.previousElementSibling.dataset.d='-'+d.v;m.nextElementSibling.dataset.d=d.v;document.querySelectorAll('#sw_pool button').forEach(b=>b.classList.toggle('on',b.dataset.v===d.v));swCalc()},
   swFeel:d=>{window._feel=+d.v;document.querySelectorAll('#sw_feel button').forEach(b=>b.classList.toggle('on',b.dataset.v===d.v))},
   swimSave:()=>{
     const id=cur().p.id, w=swRead(); if(!w.laps){toast('Inserisci il numero di vasche');return}
@@ -749,6 +797,8 @@ const A = {
     const best=S.swims.filter(x=>x.id!==id).reduce((b,x)=>Math.max(b,swDist(x)),0);
     save();back();toast(!id&&best&&swDist(w)>best?'🏆 La tua nuotata più lunga!':'Sessione salvata ✓');
   },
+  swSetAdd:()=>{const b=document.querySelector('#sw_sets [data-a=swSetAdd]');const last=[...document.querySelectorAll('#sw_sets .swset')].pop();b.insertAdjacentHTML('beforebegin',swSetRow(last?{n:last.querySelectorAll('input')[0].value,d:last.querySelectorAll('input')[1].value,style:last.querySelector('select').value}:{n:4,d:50}));swCalc()},
+  swSetDel:(d,el)=>{el.closest('.swset').remove();swCalc()},
   swimDel:d=>{if(confirm('Eliminare questa sessione?')){S.swims=S.swims.filter(x=>x.id!==d.id);save();back()}},
   progTab:d=>{progTab=d.v;render()},
   exDetail:d=>nav('exDetail',{id:d.id}),
@@ -776,7 +826,12 @@ $('#importFile').addEventListener('change',e=>{
   rd.readAsText(f);
 });
 document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!el)return;e.preventDefault();const f=A[el.dataset.a];if(f)f(el.dataset,el)});
-document.addEventListener('input',e=>{if(e.target.closest('#main')&&$('#sw_calc'))swCalc()});
+document.addEventListener('input',e=>{if(!$('#sw_calc')||!e.target.closest('#main'))return;
+  const pool=window._pool||25;
+  if(e.target.id==='sw_m'){$('#sw_laps').value=Math.round((num(e.target.value)||0)/pool)}
+  if(e.target.id==='sw_laps'){$('#sw_m').value=(Math.round(num(e.target.value))||0)*pool}
+  swCalc()});
+document.addEventListener('change',e=>{if(e.target.id==='sw_m'){const v=(Math.round(num($('#sw_laps').value))||0)*(window._pool||25);e.target.value=v}});
 document.addEventListener('focusin',e=>{if(e.target.matches('.stepper input'))setTimeout(()=>e.target.select(),0)});
 
 function confetti(){const cols=['#0a84ff','#30d158','#ff9f0a','#ff375f','#bf5af2','#ffd60a'];
