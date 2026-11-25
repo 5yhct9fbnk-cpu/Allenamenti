@@ -381,6 +381,14 @@ svg.ic{width:1.15em;height:1.15em;vertical-align:-.2em;flex:none}
 .badge.pr svg.ic{width:12px;height:12px;vertical-align:-1px}
 #toast svg.ic{vertical-align:-3px}
 details.watch summary span{display:flex;align-items:center;gap:8px}
+
+/* --- v1.7 stile filigrana --- */
+.daycard .emo{width:150px;height:150px;right:-22px;top:auto;bottom:-34px;transform:rotate(-8deg);opacity:.24;filter:none}
+.daycard.has-nx .emo{top:auto}
+.dayhero .emo{width:170px;height:170px;right:-24px;top:auto;bottom:-40px;transform:rotate(-8deg);opacity:.22}
+.dayhero .dt{max-width:none}
+.swgoal .art{right:-14px;bottom:-18px;width:132px;opacity:.24}
+.swgoal .ds{max-width:80%}
 </style>
 </head>
 <body>
@@ -785,7 +793,7 @@ V.more = ()=>{
     <button class="row tap" data-a="import"><div class="grow t" style="color:var(--blue)">Importa da file</div></button></div>
     <div class="sec-f">Salva il file su iCloud Drive o in File. Per ripristinare, usa “Importa” e scegli il file.</div>`;
   h+=`<div class="sec-h">${ic('phone','var(--sec)')}Installa sull'iPhone</div><div class="card note"><ol><li>Apri questa pagina con <b>Safari</b>.</li><li>Tocca il tasto <b>Condividi</b> (quadrato con freccia).</li><li>Scegli <b>Aggiungi alla schermata Home</b>.</li></ol>Dopo, l'app si apre a tutto schermo e funziona anche senza internet. I dati restano solo sul tuo telefono.</div>`;
-  h+=`<button class="btn danger" data-a="reset" style="margin-top:24px">Cancella tutti i dati</button><div class="sec-f" style="text-align:center;margin-bottom:10px">Allenamenti · versione 1.6</div>`;
+  h+=`<button class="btn danger" data-a="reset" style="margin-top:24px">Cancella tutti i dati</button><div class="sec-f" style="text-align:center;margin-bottom:10px">Allenamenti · versione 1.7</div>`;
   return {title:'Altro',html:h};
 };
 
@@ -916,7 +924,7 @@ const DAYART={
  1:`<svg viewBox="0 0 120 120" fill="#fff"><g transform="rotate(-18 60 60)"><rect x="6" y="57" width="108" height="6" rx="3" opacity=".85"/><rect x="16" y="34" width="13" height="52" rx="4"/><rect x="31" y="41" width="9" height="38" rx="3" opacity=".9"/><rect x="91" y="34" width="13" height="52" rx="4"/><rect x="80" y="41" width="9" height="38" rx="3" opacity=".9"/></g><circle cx="98" cy="22" r="4" opacity=".5"/><circle cx="16" cy="100" r="3" opacity=".4"/></svg>`,
  2:`<svg viewBox="0 0 120 120" fill="#fff"><g transform="rotate(-40 60 60)"><rect x="30" y="56" width="60" height="8" rx="4" opacity=".85"/><rect x="20" y="38" width="13" height="44" rx="5"/><rect x="87" y="38" width="13" height="44" rx="5"/><rect x="11" y="45" width="9" height="30" rx="3.5" opacity=".9"/><rect x="100" y="45" width="9" height="30" rx="3.5" opacity=".9"/></g><path d="M18 26l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" opacity=".55"/></svg>`,
  3:`<svg viewBox="0 0 120 120" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M96 54a37 37 0 0 0-66-18M24 22v15h15" opacity=".9"/><path d="M24 66a37 37 0 0 0 66 18M96 98V83H81" opacity=".9"/><g stroke="none" fill="#fff"><rect x="44" y="56" width="32" height="8" rx="4"/><rect x="38" y="47" width="9" height="26" rx="3"/><rect x="73" y="47" width="9" height="26" rx="3"/></g></svg>`};
-const SWIMART=`<svg viewBox="0 0 160 110" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round"><circle cx="112" cy="34" r="9" fill="#fff" stroke="none"/><path d="M40 62l26-22 18 14 20-12" stroke-width="9"/><path d="M4 82c12-10 24-10 36 0s24 10 36 0 24-10 36 0 24 10 44 0" stroke-width="6" opacity=".9"/><path d="M4 100c12-10 24-10 36 0s24 10 36 0 24-10 36 0 24 10 44 0" stroke-width="6" opacity=".5"/></svg>`;
+const SWIMART=`<svg viewBox="0 0 120 120" fill="#fff"><path d="M4 112C8 74 34 34 74 28c22-3 40 8 42 26 2 14-8 24-20 22-10-2-14-12-8-19 3-4 9-4 11 0 0-10-12-16-24-13-20 5-30 28-22 48 5 13 18 20 34 20H4z"/><path d="M4 120h112v-6c-10 6-20 6-28 0-8 6-20 6-28 0-8 6-20 6-28 0-8 6-20 6-28 0z" opacity=".7"/></svg>`;
 const TROPHYART=`<svg viewBox="0 0 120 120"><defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd60a"/><stop offset="1" stop-color="#ff9f0a"/></linearGradient></defs><circle cx="60" cy="60" r="54" fill="color-mix(in srgb,#ffd60a 18%,transparent)"/><path d="M40 28h40v26a20 20 0 0 1-40 0z" fill="url(#tg)"/><path d="M40 34H27c0 13 7 20 16 21M80 34h13c0 13-7 20-16 21" fill="none" stroke="#ff9f0a" stroke-width="6" stroke-linecap="round"/><rect x="55" y="72" width="10" height="14" fill="#ff9f0a"/><rect x="42" y="86" width="36" height="10" rx="4" fill="url(#tg)"/><path d="M60 38l3.5 7 7.5 1-5.5 5 1.5 7.5-7-3.8-7 3.8 1.5-7.5-5.5-5 7.5-1z" fill="#fff" opacity=".9"/></svg>`;
 /* ---------- Avvio ---------- */
 if(S.active){stack=[{v:'workout',p:{}}];keepAwake()}
