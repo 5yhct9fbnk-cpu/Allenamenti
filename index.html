@@ -12,6 +12,8 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
+<link rel="preload" href="fonts/poppins-latin-900-italic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/poppins-latin-800-italic.woff2" as="font" type="font/woff2" crossorigin>
 <title>Allenamenti</title>
 <style>
 :root{
@@ -336,6 +338,27 @@ details.watch .note{padding:0 18px 16px}
 .swset{gap:8px}.swset select{flex:1;background:var(--fill);border:0;border-radius:8px;padding:6px 8px;font-size:16px}
 .swset .x{color:var(--ter);padding:4px 6px}
 .calc>div{flex:1}
+
+/* --- v1.5 font sport + emoji --- */
+@font-face{font-family:"Sport";src:url(fonts/poppins-latin-900-italic.woff2) format("woff2");font-weight:900;font-style:italic;font-display:swap}
+@font-face{font-family:"Sport";src:url(fonts/poppins-latin-800-italic.woff2) format("woff2");font-weight:800;font-style:italic;font-display:swap}
+@font-face{font-family:"SportN";src:url(fonts/poppins-latin-700-normal.woff2) format("woff2");font-weight:700;font-display:swap}
+:root{--sport:"Sport",var(--round)}
+h1.large{font:900 italic 40px/1.05 var(--sport);text-transform:uppercase;letter-spacing:-.5px;margin:2px 0 8px}
+.kicker{display:flex;gap:6px;align-items:center}
+.daycard .dt,.dayhero .dt,.swgoal .dt,.done-hero h2{font-family:var(--sport);font-weight:800;font-style:italic;text-transform:uppercase;letter-spacing:-.2px}
+.daycard .dt{font-size:25px}
+.daycard .big,.dayhero .big{font-family:var(--sport);font-style:italic}
+.daycard .emo{position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:44px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.2))}
+.daycard .nx{top:14px}
+.daycard.has-nx .emo{top:62%}
+.tile .n{font-family:"SportN",var(--round);font-weight:700;letter-spacing:-.5px}
+.tile .k .e{font-size:16px;line-height:1}
+.sec-h .e{margin-right:4px}
+.navtitle{font-weight:700}
+.btn{font-weight:800;letter-spacing:.2px}
+.hero .lab{font-family:var(--sport);font-style:italic;font-weight:800;letter-spacing:.4px}
+.swgoal .dt{font-size:24px}
 </style>
 </head>
 <body>
@@ -383,6 +406,7 @@ const DAYS = {
 };
 const GCOL = {'Petto':'var(--blue)','Schiena':'var(--teal)','Spalle':'var(--orange)','Deltoidi posteriori':'var(--red)','Bicipiti':'var(--purple)','Tricipiti':'var(--indigo)'};
 const GABBR = {'Petto':'Pe','Schiena':'Sc','Spalle':'Sp','Deltoidi posteriori':'Dp','Bicipiti':'Bi','Tricipiti':'Tr'};
+const DAYEMO={1:'🏋️',2:'💪',3:'🔄'};
 const GROUPS = ['Petto','Schiena','Spalle','Deltoidi posteriori','Bicipiti','Tricipiti'];
 const STYLES = ['Libero','Misto','Rana','Dorso','Delfino'];
 const FEEL = ['Facile','Media','Dura'];
@@ -494,7 +518,7 @@ function render(toTop){
   const left = stack.length?`<button class="navbtn" data-a="back"><svg viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2L2 10l8 8"/></svg>${esc(view.backLabel||'Indietro')}</button>`:'<span></span>';
   const right = view.right?`<button class="navbtn r" data-a="${view.right.a}">${view.right.label}</button>`:'<span></span>';
   $('#nav').innerHTML=stack.length?`<div class="navrow">${left}<div class="navtitle">${esc(view.title)}</div>${right}</div>`:'';$('#nav').classList.toggle('root',!stack.length);
-  $('#main').innerHTML=(stack.length?'':`<div class="kicker">${esc(new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'}))}</div><h1 class="large">${esc(view.title)}</h1>`)+view.html;
+  $('#main').innerHTML=(stack.length?'':`<div class="kicker">${greet()} · ${esc(new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'}))}</div><h1 class="large">${esc(view.title)}</h1>`)+view.html;
   const M=$('#main');M.classList.remove('a-push','a-pop','a-fade');if(anim){void M.offsetWidth;M.classList.add(anim)}anim=null;popSet=null;
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
   window.scrollTo(0,toTop?0:y);onScroll();tick();
@@ -533,17 +557,17 @@ V.gym = ()=>{
   const prevW=S.sessions.filter(s=>s.start>=ws-7*864e5&&s.start<ws), pVol=prevW.reduce((t,s)=>t+volume(s),0);
   let h='';
   if(a) h+=`<button class="active-card" data-a="resume"><div><div class="t">Allenamento in corso</div><div class="s">Giorno ${a.day} · ${esc(DAYS[a.day].name)} · tocca per riprendere</div></div><div class="time" data-live="total"></div></button>`;
-  h+=`<div class="sec-h">Inizia allenamento</div><div class="days">`;
+  h+=`<div class="sec-h"><span class="e">🏁</span>Inizia allenamento</div><div class="days">`;
   [1,2,3].forEach(d=>{
     const ex=dayExercises(d);
     const sub=d===3?ex.map(x=>exName(x)).join(' · '):`${ex.length} esercizi · ${[...new Set(ex.map(x=>EX[x].g))].slice(0,3).join(', ')}`;
-    h+=`<button class="daycard d${d}" data-a="day" data-d="${d}"><div class="dn">Giorno ${d}</div><div class="dt">${esc(DAYS[d].name)}</div><div class="ds">${esc(sub)}</div><div class="big">${d}</div>${d===nd&&!a?'<span class="nx">Prossimo</span>':''}</button>`});
+    h+=`<button class="daycard d${d}${d===nd&&!a?' has-nx':''}" data-a="day" data-d="${d}"><div class="dn">Giorno ${d}</div><div class="dt">${esc(DAYS[d].name)}</div><div class="ds">${esc(sub)}</div><div class="emo">${DAYEMO[d]}</div>${d===nd&&!a?'<span class="nx">Prossimo</span>':''}</button>`});
   h+=`</div>`;
-  h+=`<div class="sec-h">Questa settimana</div><div class="tiles">
-    <div class="tile"><div class="k"><i style="background:var(--green)">✓</i>Allenamenti</div><div class="n">${week.length}<small>/ ${goal}</small></div><div class="dots">${Array.from({length:goal},(_,i)=>`<span class="${i<week.length?'on':''}"></span>`).join('')}</div></div>
-    <div class="tile"><div class="k"><i style="background:var(--blue)">kg</i>Volume</div><div class="n">${int(wVol)}<small>kg</small></div><div class="d">${pVol?`${wVol>=pVol?'<span class="up">▲':'<span class="down">▼'} ${int(Math.abs(wVol-pVol))}</span> vs sett. scorsa`:'peso × ripetizioni'}</div></div></div>`;
+  h+=`<div class="sec-h"><span class="e">📆</span>Questa settimana</div><div class="tiles">
+    <div class="tile"><div class="k"><span class="e">🔥</span>Allenamenti</div><div class="n">${week.length}<small>/ ${goal}</small></div><div class="dots">${Array.from({length:goal},(_,i)=>`<span class="${i<week.length?'on':''}"></span>`).join('')}</div></div>
+    <div class="tile"><div class="k"><span class="e">🏋️</span>Volume</div><div class="n">${int(wVol)}<small>kg</small></div><div class="d">${pVol?`${wVol>=pVol?'<span class="up">▲':'<span class="down">▼'} ${int(Math.abs(wVol-pVol))}</span> vs sett. scorsa`:'peso × ripetizioni'}</div></div></div>`;
   const list=sessionsDesc().slice(0,15);
-  h+=`<div class="sec-h">Storico</div>`;
+  h+=`<div class="sec-h"><span class="e">🗂️</span>Storico</div>`;
   h+= list.length?`<div class="list">${list.map(s=>`<button class="row tap" data-a="session" data-id="${s.id}"><div class="grow"><div class="t">${esc(fmtDate(s.start))} · Giorno ${s.day}</div><div class="s">${fmtMin(s.end-s.start)} · ${nSets(s)} serie · ${int(volume(s))} kg${s.prs?` · 🏆 ${s.prs}`:''}</div></div>${chev}</button>`).join('')}</div>`
     :`<div class="list"><div class="empty">Nessun allenamento ancora. Scegli un giorno qui sopra e parti! 💪</div></div>`;
   return {title:'Palestra',html:h};
@@ -552,9 +576,9 @@ V.gym = ()=>{
 V.day = ({d})=>{
   d=+d; const ex=dayExercises(d);
   const lastDay=sessionsDesc().find(s=>s.day===d);
-  let h=`<div class="dayhero daycard d${d}" style="min-height:0"><div class="dn">Giorno ${d}</div><div class="dt">${esc(DAYS[d].name)}</div>
+  let h=`<div class="dayhero daycard d${d}" style="min-height:0"><div class="dn">${DAYEMO[d]} Giorno ${d}</div><div class="dt">${esc(DAYS[d].name)}</div>
     <div class="meta"><div><b>${ex.length}</b><span>esercizi</span></div><div><b>~${ex.length*3*(S.settings.rest/60+0.75)|0}′</b><span>durata stimata</span></div><div><b>${lastDay?esc(shortDate(lastDay.start)):'–'}</b><span>ultima volta</span></div></div><div class="big">${d}</div></div>`;
-  h+=`<div class="sec-h">Esercizi</div><div class="list">${ex.map(id=>{const L=lastSets(id),sg=suggest(id),g=EX[id].g,gc=GCOL[g]||'var(--sec)';
+  h+=`<div class="sec-h"><span class="e">📋</span>Esercizi</div><div class="list">${ex.map(id=>{const L=lastSets(id),sg=suggest(id),g=EX[id].g,gc=GCOL[g]||'var(--sec)';
     return `<div class="exrow"><div class="gi" style="background:color-mix(in srgb,${gc} 16%,transparent);color:${gc}">${GABBR[g]||'•'}</div><div class="grow"><div class="t">${esc(exName(id))}</div><div class="g">${esc(g)}</div>${L?`<div class="l">Ultima volta: <b>${setsStr(L.sets)}</b></div>`:''}${sg.type==='up'||sg.type==='up2'?`<span class="pill green">⬆ Prova ${kg(sg.next)} kg</span>`:''}</div></div>`}).join('')}</div>`;
   if(d===3) h+=`<div class="sec-f">Un esercizio per gruppo muscolare, preso dai giorni 1 e 2. Cambia a ogni giorno 3 che completi.</div>`;
   h+=`<button class="btn primary" data-a="start" data-d="${d}" style="margin-top:20px">Inizia allenamento</button>`;
@@ -606,7 +630,7 @@ V.session = ({id,done})=>{
     if(s.prs) h+=`<div class="hint up" style="margin-bottom:12px"><i>🏆</i><span>${s.prs===1?'Hai battuto 1 record personale!':`Hai battuto ${s.prs} record personali!`}</span></div>`;
     if(ups.length) h+=`<div class="hint up2" style="margin-bottom:12px"><i>⬆️</i><span>La prossima volta aumenta il carico su: <b>${ups.map(e=>esc(exName(e.id))).join(', ')}</b>.</span></div>`;
   }
-  h+=`<div class="tiles"><div class="tile"><div class="k">Durata</div><div class="n">${Math.round((s.end-s.start)/60000)}<small>min</small></div></div><div class="tile"><div class="k">Volume</div><div class="n">${int(volume(s))}<small>kg</small></div><div class="d">${nSets(s)} serie</div></div></div>`;
+  h+=`<div class="tiles"><div class="tile"><div class="k"><span class="e">⏱️</span>Durata</div><div class="n">${Math.round((s.end-s.start)/60000)}<small>min</small></div></div><div class="tile"><div class="k"><span class="e">🏋️</span>Volume</div><div class="n">${int(volume(s))}<small>kg</small></div><div class="d">${nSets(s)} serie</div></div></div>`;
   s.ex.filter(e=>e.sets.length).forEach(e=>{
     h+=`<div class="sec-h">${esc(exName(e.id))}</div><div class="list">${e.sets.map((x,i)=>`<div class="row"><span class="set" style="border:0;padding:0;flex:1"><span class="no">${i+1}</span><span class="val">${kg(x.w)} kg × ${x.r}</span>${x.pr?'<span class="badge pr">🏆</span>':''}${repBadge(x.r)}</span></div>`).join('')}</div>`});
   h+= done?`<button class="btn primary" data-a="tab" data-t="gym" style="margin-top:24px">Fatto</button>`
@@ -641,12 +665,12 @@ V.swim = ()=>{
     <li>Alla fine sblocca il Watch con la <b>Digital Crown</b> (tienila premuta, o ruotala sui modelli più vecchi), scorri a destra e tocca <b>Termina</b>.</li>
     <li>Qui tocca <b>Registra sessione</b> e copia <b>Distanza</b> e <b>Durata</b> dal riepilogo del Watch (o dall’app Fitness sull’iPhone).</li></ol>
     <div class="note">L’app non può leggere direttamente i dati del Watch: è una limitazione di iPhone per le app web. Bastano 20 secondi per copiarli.</div></details>`;
-  h+=`<div class="sec-h">Riepilogo</div><div class="tiles">
-    <div class="tile"><div class="k">Questa settimana</div><div class="n">${week.reduce((t,w)=>t+w.laps,0)}<small>vasche</small></div><div class="d">${int(week.reduce((t,w)=>t+swDist(w),0))} m</div></div>
-    <div class="tile"><div class="k">Questo mese</div><div class="n">${int(month.reduce((t,w)=>t+swDist(w),0))}<small>m</small></div><div class="d">${month.length} session${month.length===1?'e':'i'}</div></div>
-    <div class="tile"><div class="k">Passo medio</div><div class="n">${fmtPace(avgPace)}<small>/100 m</small></div><div class="d">ultime ${last4.length||0} sessioni</div></div>
-    <div class="tile"><div class="k">Miglior passo</div><div class="n">${best?fmtPace(swPace(best)):'–'}<small>/100 m</small></div><div class="d">${best?esc(fmtDate(dayTs(best.date))):'—'}</div></div></div>`;
-  h+=`<div class="sec-h">Storico</div>`;
+  h+=`<div class="sec-h"><span class="e">📊</span>Riepilogo</div><div class="tiles">
+    <div class="tile"><div class="k"><span class="e">🏊</span>Settimana</div><div class="n">${week.reduce((t,w)=>t+w.laps,0)}<small>vasche</small></div><div class="d">${int(week.reduce((t,w)=>t+swDist(w),0))} m</div></div>
+    <div class="tile"><div class="k"><span class="e">📅</span>Questo mese</div><div class="n">${int(month.reduce((t,w)=>t+swDist(w),0))}<small>m</small></div><div class="d">${month.length} session${month.length===1?'e':'i'}</div></div>
+    <div class="tile"><div class="k"><span class="e">⏱️</span>Passo medio</div><div class="n">${fmtPace(avgPace)}<small>/100 m</small></div><div class="d">ultime ${last4.length||0} sessioni</div></div>
+    <div class="tile"><div class="k"><span class="e">🏆</span>Miglior passo</div><div class="n">${best?fmtPace(swPace(best)):'–'}<small>/100 m</small></div><div class="d">${best?esc(fmtDate(dayTs(best.date))):'—'}</div></div></div>`;
+  h+=`<div class="sec-h"><span class="e">🗂️</span>Storico</div>`;
   h+= list.length?`<div class="list">${list.map(w=>`<button class="row tap" data-a="swimEdit" data-id="${w.id}"><div class="grow"><div class="t">${esc(fmtDate(dayTs(w.date)))} · ${int(swDist(w))} m</div><div class="s">${w.laps} vasche · ${w.sec?fmtDur(w.sec*1000):'–'} · ${fmtPace(swPace(w))}/100 m${w.kcal?` · ${w.kcal} kcal`:''}</div>${w.sets&&w.sets.length?`<div class="s">${w.sets.map(x=>`${x.n}×${x.d} ${esc(x.style.toLowerCase())}`).join(' · ')}</div>`:''}</div>${chev}</button>`).join('')}</div>`
     :`<div class="list"><div class="empty">Nessuna sessione registrata. Dopo la piscina tocca “Registra sessione” 🏊</div></div>`;
   return {title:'Nuoto',html:h};
@@ -694,21 +718,21 @@ V.prog = ()=>{
   if(progTab==='gym'){
     const ss=S.sessions.slice().sort((a,b)=>a.start-b.start), m30=Date.now()-30*864e5, r30=ss.filter(s=>s.start>=m30);
     const totPR=ss.reduce((t,s)=>t+(s.prs||0),0);
-    h+=`<div class="sec-h">Ultimi 30 giorni</div><div class="tiles"><div class="tile"><div class="k">Allenamenti</div><div class="n">${r30.length}</div><div class="d">${ss.length} in totale</div></div><div class="tile"><div class="k">Record battuti</div><div class="n">${r30.reduce((t,s)=>t+(s.prs||0),0)}</div><div class="d">${totPR} in totale</div></div></div>`;
+    h+=`<div class="sec-h">Ultimi 30 giorni</div><div class="tiles"><div class="tile"><div class="k"><span class="e">🔥</span>Allenamenti</div><div class="n">${r30.length}</div><div class="d">${ss.length} in totale</div></div><div class="tile"><div class="k"><span class="e">🏆</span>Record battuti</div><div class="n">${r30.reduce((t,s)=>t+(s.prs||0),0)}</div><div class="d">${totPR} in totale</div></div></div>`;
     // volume per settimana (ultime 8)
     const ws=weekStart(Date.now()), weeks=[];for(let i=7;i>=0;i--){const st=ws-i*7*864e5;weeks.push({st,v:ss.filter(s=>s.start>=st&&s.start<st+7*864e5).reduce((t,s)=>t+volume(s),0)})}
     if(ss.length) h+=`<div class="sec-h">Volume settimanale (kg)</div><div class="card">${chart(weeks.map(w=>w.v),weeks.map(w=>shortDate(w.st)),'var(--blue)',v=>int(v))}</div>`;
     const ids=Object.keys(EX).filter(k=>history(k).length).concat([...new Set(ss.flatMap(s=>s.ex.map(e=>e.id)))].filter(k=>!EX[k]&&history(k).length));
     const ups=ids.filter(k=>['up','up2'].includes(suggest(k).type));
     if(ups.length) h+=`<div class="sec-h">⬆️ Pronti per aumentare il carico</div><div class="list">${ups.map(k=>{const sg=suggest(k);return `<button class="row tap" data-a="exDetail" data-id="${k}"><div class="grow"><div class="t">${esc(exName(k))}</div><div class="s">Prossima volta: ${kg(sg.next)} kg</div></div><span class="pill green">+${kg(sg.next-analyze(lastSets(k).sets).top)} kg</span>${chev}</button>`}).join('')}</div>`;
-    h+=`<div class="sec-h">Esercizi</div>`;
+    h+=`<div class="sec-h"><span class="e">📋</span>Esercizi</div>`;
     h+= ids.length?`<div class="list">${ids.map(k=>{const H=history(k),l=analyze(H[H.length-1].sets),f=analyze(H[0].sets),d=l.top-f.top;
       return `<button class="row tap" data-a="exDetail" data-id="${k}"><div class="grow"><div class="t">${esc(exName(k))}</div><div class="s">${H.length} session${H.length===1?"e":"i"} · record ${kg(maxW(k))} kg</div></div><span class="v">${kg(l.top)} kg</span>${d?`<span class="pill ${d>0?'green':'red'}">${d>0?'+':''}${kg(d)}</span>`:''}${chev}</button>`}).join('')}</div>`
       :`<div class="list"><div class="empty">Completa il primo allenamento per vedere i progressi.</div></div>`;
   }else{
     const sw=S.swims.slice().sort((a,b)=>a.date.localeCompare(b.date)).slice(-16);
     const tot=S.swims.reduce((t,w)=>t+swDist(w),0);
-    h+=`<div class="sec-h">Totale</div><div class="tiles"><div class="tile"><div class="k">Distanza</div><div class="n">${tot>=10000?kg(Math.round(tot/100)/10)+'<small>km</small>':int(tot)+'<small>m</small>'}</div></div><div class="tile"><div class="k">Sessioni</div><div class="n">${S.swims.length}</div></div></div>`;
+    h+=`<div class="sec-h">Totale</div><div class="tiles"><div class="tile"><div class="k"><span class="e">🌊</span>Distanza</div><div class="n">${tot>=10000?kg(Math.round(tot/100)/10)+'<small>km</small>':int(tot)+'<small>m</small>'}</div></div><div class="tile"><div class="k"><span class="e">🏊</span>Sessioni</div><div class="n">${S.swims.length}</div></div></div>`;
     h+=`<div class="sec-h">Distanza per sessione (m)</div><div class="card">${chart(sw.map(swDist),sw.map(w=>shortDate(dayTs(w.date))),'var(--teal)',v=>int(v))}</div>`;
     const sp=sw.filter(w=>isFinite(swPace(w)));
     h+=`<div class="sec-h">Passo /100 m (più basso = più veloce)</div><div class="card">${chart(sp.map(w=>-swPace(w)),sp.map(w=>shortDate(dayTs(w.date))),'var(--green)',v=>fmtPace(-v))}</div>`;
@@ -719,9 +743,9 @@ V.exDetail = ({id})=>{
   const H=history(id); if(!H.length){stack.pop();return V.prog()}
   const tops=H.map(x=>analyze(x.sets).top), e1=H.map(x=>Math.max(...x.sets.map(s=>e1rm(s.w,s.r)))), sg=suggest(id);
   let h=`<div class="hint ${sg.type}" style="margin:0 0 12px"><i>${sg.icon}</i><span>${sg.text}</span></div>`;
-  h+=`<div class="tiles"><div class="tile"><div class="k">Carico record</div><div class="n">${kg(maxW(id))}<small>kg</small></div></div><div class="tile"><div class="k">Massimale stimato</div><div class="n">${kg(Math.round(Math.max(...e1)*2)/2)}<small>kg</small></div><div class="d">1RM (formula Epley)</div></div></div>`;
+  h+=`<div class="tiles"><div class="tile"><div class="k"><span class="e">🏆</span>Carico record</div><div class="n">${kg(maxW(id))}<small>kg</small></div></div><div class="tile"><div class="k"><span class="e">💥</span>Massimale stimato</div><div class="n">${kg(Math.round(Math.max(...e1)*2)/2)}<small>kg</small></div><div class="d">1RM (formula Epley)</div></div></div>`;
   h+=`<div class="sec-h">Carico di lavoro (kg)</div><div class="card">${chart(tops,H.map(x=>shortDate(x.s.start)),'var(--blue)',v=>kg(v))}</div>`;
-  h+=`<div class="sec-h">Storico</div><div class="list">${H.slice().reverse().map(x=>`<div class="row"><div class="grow"><div class="t">${esc(fmtDate(x.s.start))}</div><div class="s">${setsStr(x.sets)}</div></div></div>`).join('')}</div>`;
+  h+=`<div class="sec-h"><span class="e">🗂️</span>Storico</div><div class="list">${H.slice().reverse().map(x=>`<div class="row"><div class="grow"><div class="t">${esc(fmtDate(x.s.start))}</div><div class="s">${setsStr(x.sets)}</div></div></div>`).join('')}</div>`;
   return {title:exName(id),html:h,backLabel:'Progressi'};
 };
 
@@ -731,16 +755,16 @@ V.more = ()=>{
   const days=S.lastBackup?Math.floor((Date.now()-S.lastBackup)/864e5):null, hasData=S.sessions.length||S.swims.length;
   let h='';
   if(hasData&&(days===null||days>=14)) h+=`<div class="hint down" style="margin:0 0 4px"><i>💾</i><span>${days===null?'Non hai ancora fatto un backup.':`Ultimo backup ${days} giorni fa.`} Esporta i dati ogni tanto: iOS può cancellarli se l'app non viene usata a lungo.</span></div>`;
-  h+=`<div class="sec-h">Recupero tra le serie</div><div class="card">${seg('rest',[60,90,120,150,180],v=>v%60?`${Math.floor(v/60)}:30`:`${v/60} min`)}</div>`;
-  h+=`<div class="sec-h">Aumento di carico suggerito</div><div class="card">${seg('inc',[1,2,2.5,5],v=>kg(v)+' kg')}</div>`;
-  h+=`<div class="sec-h">Range di ripetizioni a cedimento</div><div class="card">${seg('range',['5-7','6-8','8-10','10-12'],v=>v)}</div><div class="sec-f">Se superi il massimo del range, l'app ti dice di aumentare il carico.</div>`;
-  h+=`<div class="sec-h">Obiettivo settimanale</div><div class="card">${seg('weekGoal',[2,3,4],v=>v+' allenamenti')}</div>`;
-  h+=`<div class="sec-h">Backup</div><div class="list">
+  h+=`<div class="sec-h"><span class="e">⏳</span>Recupero tra le serie</div><div class="card">${seg('rest',[60,90,120,150,180],v=>v%60?`${Math.floor(v/60)}:30`:`${v/60} min`)}</div>`;
+  h+=`<div class="sec-h"><span class="e">⬆️</span>Aumento di carico suggerito</div><div class="card">${seg('inc',[1,2,2.5,5],v=>kg(v)+' kg')}</div>`;
+  h+=`<div class="sec-h"><span class="e">🎯</span>Range di ripetizioni a cedimento</div><div class="card">${seg('range',['5-7','6-8','8-10','10-12'],v=>v)}</div><div class="sec-f">Se superi il massimo del range, l'app ti dice di aumentare il carico.</div>`;
+  h+=`<div class="sec-h"><span class="e">🗓️</span>Obiettivo settimanale</div><div class="card">${seg('weekGoal',[2,3,4],v=>v+' allenamenti')}</div>`;
+  h+=`<div class="sec-h"><span class="e">💾</span>Backup</div><div class="list">
     <button class="row tap" data-a="export"><div class="grow t" style="color:var(--blue)">Esporta dati</div><span class="v" style="font-size:14px">${S.lastBackup?esc(fmtDate(S.lastBackup)):'mai'}</span></button>
     <button class="row tap" data-a="import"><div class="grow t" style="color:var(--blue)">Importa da file</div></button></div>
     <div class="sec-f">Salva il file su iCloud Drive o in File. Per ripristinare, usa “Importa” e scegli il file.</div>`;
-  h+=`<div class="sec-h">Installa sull'iPhone</div><div class="card note"><ol><li>Apri questa pagina con <b>Safari</b>.</li><li>Tocca il tasto <b>Condividi</b> (quadrato con freccia).</li><li>Scegli <b>Aggiungi alla schermata Home</b>.</li></ol>Dopo, l'app si apre a tutto schermo e funziona anche senza internet. I dati restano solo sul tuo telefono.</div>`;
-  h+=`<button class="btn danger" data-a="reset" style="margin-top:24px">Cancella tutti i dati</button><div class="sec-f" style="text-align:center;margin-bottom:10px">Allenamenti · versione 1.4</div>`;
+  h+=`<div class="sec-h"><span class="e">📱</span>Installa sull'iPhone</div><div class="card note"><ol><li>Apri questa pagina con <b>Safari</b>.</li><li>Tocca il tasto <b>Condividi</b> (quadrato con freccia).</li><li>Scegli <b>Aggiungi alla schermata Home</b>.</li></ol>Dopo, l'app si apre a tutto schermo e funziona anche senza internet. I dati restano solo sul tuo telefono.</div>`;
+  h+=`<button class="btn danger" data-a="reset" style="margin-top:24px">Cancella tutti i dati</button><div class="sec-f" style="text-align:center;margin-bottom:10px">Allenamenti · versione 1.5</div>`;
   return {title:'Altro',html:h};
 };
 
@@ -838,6 +862,7 @@ function confetti(){const cols=['#0a84ff','#30d158','#ff9f0a','#ff375f','#bf5af2
   for(let k=0;k<70;k++){const c=document.createElement('div');c.className='confetti';c.style.left=Math.random()*100+'vw';c.style.background=cols[k%cols.length];
     c.style.setProperty('--dx',(Math.random()*120-60)+'px');c.style.setProperty('--rot',(Math.random()*900-450)+'deg');
     c.style.animationDuration=(1.6+Math.random()*1.4)+'s';c.style.animationDelay=(Math.random()*.4)+'s';document.body.appendChild(c);setTimeout(()=>c.remove(),3600)}}
+function greet(){const h=new Date().getHours();return h<5?'Buonanotte 🌙':h<12?'Buongiorno ☀️':h<18?'Buon pomeriggio 👋':'Buonasera 🌆'}
 /* ---------- Avvio ---------- */
 if(S.active){stack=[{v:'workout',p:{}}];keepAwake()}
 render(true);
